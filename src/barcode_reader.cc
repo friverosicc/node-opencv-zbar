@@ -56,6 +56,7 @@ class BarcodeReader : public AsyncProgressWorker {
 			// Wrap image data
 			Image image(width, height, "Y800", raw, width * height);
 
+			// cout << "Analizing image" << endl;	
 			// Scan the image for barcodes			
 			scanner.scan(image);
 
@@ -65,6 +66,8 @@ class BarcodeReader : public AsyncProgressWorker {
 
 				char *data = new char[symbol->get_data().size() + 1];
 				copy(symbol->get_data().begin(), symbol->get_data().end(), data);
+
+				// cout << "Addon -> " << data << endl;	
 
 				progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
 				
