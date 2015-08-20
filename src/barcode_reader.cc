@@ -89,8 +89,8 @@ class BarcodeReader : public AsyncProgressWorker {
 };
 
 NAN_METHOD(ReadData) {
-	Callback *progress = new Callback(info[2].As<v8::Function>());
-	Callback *callback = new Callback(info[3].As<v8::Function>());	
+	Callback *progress = new Callback(info[1].As<v8::Function>());
+	Callback *callback = new Callback(info[2].As<v8::Function>());	
 	v8::String::Utf8Value path(info[0]->ToString());
 
 	char *address = new char[strlen(*path) + 1];
