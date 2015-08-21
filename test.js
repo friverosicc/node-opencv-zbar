@@ -1,5 +1,6 @@
-var barcodeReader = require('./build/Release/barcode-reader');
+var barcodeReader = require('./index');
 console.log(barcodeReader);
+
 var callback = function(data) {
 	console.log('callback');
 };
