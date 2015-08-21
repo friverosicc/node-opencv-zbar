@@ -5,6 +5,8 @@
 #include <iostream>
 #include <zbar.h>
 #include <iomanip>
+#include <string>
+#include <time.h>
 
 using namespace Nan;
 using namespace std;
@@ -26,8 +28,12 @@ class BarcodeReader : public AsyncProgressWorker {
 	~BarcodeReader() {}
 
 	void Execute(const AsyncProgressWorker::ExecutionProgress &progress) {				
-		VideoCapture cap;	
-
+		VideoCapture cap;			
+		time_t first_decoded;
+		time_t last_decoded;
+		string last_barcode_decoded("");		
+		
+		// Check if we need to open a device by address or id
 		if(device_number == -1)	
 			cap.open(cam_address);
 		else 
@@ -61,24 +67,32 @@ class BarcodeReader : public AsyncProgressWorker {
 
 			// Wrap image data
 			Image image(width, height, "Y800", raw, width * height);
-
-			// cout << "Analizing image" << endl;	
+			
 			// Scan the image for barcodes			
 			scanner.scan(image);
 
-			// Extract results
-			int counter = 0;
-			for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {				
+			if(image.symbol_begin() != image.symbol_end()) {
+				time(&last_decoded);
+				double diff = difftime(last_decoded, first_decoded);
+				time(&first_decoded);
 
-				char *data = new char[symbol->get_data().size() + 1];
-				copy(symbol->get_data().begin(), symbol->get_data().end(), data);
+				// Extract results
+				int counter = 0;
+				for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {				
+					
+					char *data = new char[symbol->get_data().size() + 1];
+					copy(symbol->get_data().begin(), symbol->get_data().end(), data);
+					string new_barcode(data);					
 
-				// cout << "Addon -> " << data << endl;	
+					if(diff >= 2 || last_barcode_decoded.compare(new_barcode) != 0) {						
+						progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
+						last_barcode_decoded = new_barcode;
+					}
+					
+					counter++;
+				}
+			} 
 
-				progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
-				
-				counter++;
-			}
 		}	
 	}
 
