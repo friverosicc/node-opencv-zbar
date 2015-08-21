@@ -16,16 +16,22 @@ class BarcodeReader : public AsyncProgressWorker {
 
 	BarcodeReader(	Callback *callback,
 					Callback *progress, 
-					char *cam_address) : 
+					char *cam_address,
+					int device_number) : 
 					AsyncProgressWorker(callback),
 					progress(progress),
-					cam_address(cam_address) {}
+					cam_address(cam_address),
+					device_number(device_number) {}
 
 	~BarcodeReader() {}
 
 	void Execute(const AsyncProgressWorker::ExecutionProgress &progress) {				
-		VideoCapture cap;		
-		cap.open(cam_address);
+		VideoCapture cap;	
+
+		if(device_number == -1)	
+			cap.open(cam_address);
+		else 
+			cap.open(device_number);
 
 		if (!cap.isOpened()) {
 			cout << "Could not open camera." << endl;
@@ -89,19 +95,27 @@ class BarcodeReader : public AsyncProgressWorker {
 	private:
 		Callback *progress;
 		char *cam_address;		
+		int device_number;
 };
 
 NAN_METHOD(ReadData) {
 	Callback *progress = new Callback(info[1].As<v8::Function>());
 	Callback *callback = new Callback(info[2].As<v8::Function>());	
-	v8::String::Utf8Value path(info[0]->ToString());
+	char *address = new char[50];
+	int device_number = -1;
 
-	char *address = new char[strlen(*path) + 1];
-	strcpy(address, *path);		
+	if(!info[0]->IsNumber()) { 
+		v8::String::Utf8Value path(info[0]->ToString());		
+		strcpy(address, *path);
+	} else {
+		device_number = To<uint32_t>(info[0]).FromJust();
+	}
+
 	AsyncQueueWorker(new BarcodeReader(
 		callback,
 		progress,
-		address));
+		address,
+		device_number));
 }
 
 NAN_MODULE_INIT(Init) {	
