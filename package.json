@@ -1,6 +1,6 @@
 {
   "name": "node-opencv-zbar",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Nodejs addon that helps to find barcodes in images captured by webcams.",
   "main": "index.js",
   "scripts": {
