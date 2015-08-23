@@ -84,7 +84,7 @@ class BarcodeReader : public AsyncProgressWorker {
 					copy(symbol->get_data().begin(), symbol->get_data().end(), data);
 					string new_barcode(data);					
 
-					if(diff >= 2 || last_barcode_decoded.compare(new_barcode) != 0) {						
+					if(diff >= 4 || last_barcode_decoded.compare(new_barcode) != 0) {						
 						progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
 						last_barcode_decoded = new_barcode;
 					}
