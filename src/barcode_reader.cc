@@ -19,11 +19,13 @@ class BarcodeReader : public AsyncProgressWorker {
 	BarcodeReader(	Callback *callback,
 					Callback *progress, 
 					char *cam_address,
-					int device_number) : 
+					int device_number,
+					int time_interval) : 
 					AsyncProgressWorker(callback),
 					progress(progress),
 					cam_address(cam_address),
-					device_number(device_number) {}
+					device_number(device_number), 
+					time_interval(time_interval) {}
 
 	~BarcodeReader() {}
 
@@ -84,7 +86,7 @@ class BarcodeReader : public AsyncProgressWorker {
 					copy(symbol->get_data().begin(), symbol->get_data().end(), data);
 					string new_barcode(data);					
 
-					if(diff >= 4 || last_barcode_decoded.compare(new_barcode) != 0) {						
+					if(diff >= time_interval || last_barcode_decoded.compare(new_barcode) != 0) {						
 						progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
 						last_barcode_decoded = new_barcode;
 					}
@@ -110,11 +112,12 @@ class BarcodeReader : public AsyncProgressWorker {
 		Callback *progress;
 		char *cam_address;		
 		int device_number;
+		int time_interval;
 };
 
 NAN_METHOD(ReadData) {
-	Callback *progress = new Callback(info[1].As<v8::Function>());
-	Callback *callback = new Callback(info[2].As<v8::Function>());	
+	Callback *progress = new Callback(info[2].As<v8::Function>());
+	Callback *callback = new Callback(info[3].As<v8::Function>());	
 	char *address = new char[50];
 	int device_number = -1;
 
@@ -129,7 +132,8 @@ NAN_METHOD(ReadData) {
 		callback,
 		progress,
 		address,
-		device_number));
+		device_number,
+		To<uint32_t>(info[1]).FromJust()));
 }
 
 NAN_MODULE_INIT(Init) {	
