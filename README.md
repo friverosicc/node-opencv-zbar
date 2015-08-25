@@ -18,7 +18,7 @@ npm install node-opencv-zbar
 ```
 var barcodeReader = require('node-opencv-zbar');
 
-barcodeReader.readData([addres_to_file | address_to_ip_cam | id_device], function(data) {
+barcodeReader.readData(addres_to_file | address_to_ip_cam | id_device, [time_interval], function(data) {
 	console.log(data); // Barcode captured
 });
 
