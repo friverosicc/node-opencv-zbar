@@ -8,7 +8,7 @@ This nodejs addon uses the opencv library to connect to webcams or video files a
 * [Zbar]
 
 ## Installation
-To use node-opencv-zbar you will install OpenCV and Zbar
+To use node-opencv-zbar you have to install OpenCV and Zbar
 
 ```bash
 npm install node-opencv-zbar
