@@ -1,7 +1,7 @@
 {
 	"targets": [
 		{
-			"target_name": "barcode-reader",
+			"target_name": "asyncprogressworker",
 			"sources": [ "src/barcode_reader.cc" ],
 			"include_dirs" : [
 				"<!@(pkg-config --cflags opencv)",

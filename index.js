@@ -1,4 +1,4 @@
-var barcodeReader 	= require('./build/Release/barcode-reader');
+var barcodeReader 	= require('./build/Release/asyncprogressworker');
 var _ 				= require('underscore');
 
 var BarcoderReader = function() {
