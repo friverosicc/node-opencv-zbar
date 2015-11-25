@@ -82,8 +82,7 @@ class BarcodeReader : public AsyncProgressWorker {
 				int counter = 0;
 				for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {				
 					
-					char *data = new char[symbol->get_data().size() + 1];
-					copy(symbol->get_data().begin(), symbol->get_data().end(), data);
+					const char *data = symbol->get_data().c_str();					
 					string new_barcode(data);					
 
 					if(diff >= time_interval || last_barcode_decoded.compare(new_barcode) != 0) {						
@@ -93,8 +92,7 @@ class BarcodeReader : public AsyncProgressWorker {
 					
 					counter++;
 				}
-			} 
-
+			}
 		}	
 	}
 
