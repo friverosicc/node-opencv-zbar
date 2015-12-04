@@ -14,47 +14,47 @@ using namespace cv;
 using namespace zbar;
 
 class BarcodeReader : public AsyncProgressWorker {
-	public: 
+	public:
 
 	BarcodeReader(	Callback *callback,
-					Callback *progress, 
+					Callback *progress,
 					char *cam_address,
 					int device_number,
-					int time_interval) : 
+					int time_interval) :
 					AsyncProgressWorker(callback),
 					progress(progress),
 					cam_address(cam_address),
-					device_number(device_number), 
+					device_number(device_number),
 					time_interval(time_interval) {}
 
 	~BarcodeReader() {}
 
-	void Execute(const AsyncProgressWorker::ExecutionProgress &progress) {				
-		VideoCapture cap;			
+	void Execute(const AsyncProgressWorker::ExecutionProgress &progress) {
+		VideoCapture cap;
 		time_t first_decoded;
 		time_t last_decoded;
-		string last_barcode_decoded("");		
-		
+		string last_barcode_decoded("");
+
 		// Check if we need to open a device by address or id
-		if(device_number == -1)	
+		if(device_number == -1)
 			cap.open(cam_address);
-		else 
+		else
 			cap.open(device_number);
 
 		if (!cap.isOpened()) {
 			cout << "Could not open camera." << endl;
 			exit(EXIT_FAILURE);
-		} 
-		cout << "Cam opened" << endl;		
+		}
+		cout << "Cam opened" << endl;
 
 		// Create a zbar reader
 		ImageScanner scanner;
-    
+
 		// Configure the reader
 		scanner.set_config(ZBAR_NONE, ZBAR_CFG_ENABLE, 1);
 
 		for (;;) {
-         
+
 			// Capture an OpenCV frame
 			cv::Mat frame, frame_grayscale;
 			cap >> frame;
@@ -69,8 +69,8 @@ class BarcodeReader : public AsyncProgressWorker {
 
 			// Wrap image data
 			Image image(width, height, "Y800", raw, width * height);
-			
-			// Scan the image for barcodes			
+
+			// Scan the image for barcodes
 			scanner.scan(image);
 
 			if(image.symbol_begin() != image.symbol_end()) {
@@ -79,25 +79,22 @@ class BarcodeReader : public AsyncProgressWorker {
 				time(&first_decoded);
 
 				// Extract results
-				int counter = 0;
-				for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {				
-					
-					const char *data = symbol->get_data().c_str();					
-					string new_barcode(data);					
+				for (Image::SymbolIterator symbol = image.symbol_begin(); symbol != image.symbol_end(); ++symbol) {
 
-					if(diff >= time_interval || last_barcode_decoded.compare(new_barcode) != 0) {						
+					const char *data = symbol->get_data().c_str();
+					string new_barcode(data);
+
+					if(diff >= time_interval) {
 						progress.Send(reinterpret_cast<const char*>(data), sizeof(symbol->get_data()));
 						last_barcode_decoded = new_barcode;
 					}
-					
-					counter++;
 				}
 			}
-		}	
+		}
 	}
 
 	void HandleProgressCallback(const char *data, size_t size) {
-		HandleScope scope;		
+		HandleScope scope;
 
 		v8::Local<v8::Value> argv[] = {
 			New<v8::String>(data).ToLocalChecked()
@@ -108,19 +105,19 @@ class BarcodeReader : public AsyncProgressWorker {
 
 	private:
 		Callback *progress;
-		char *cam_address;		
+		char *cam_address;
 		int device_number;
 		int time_interval;
 };
 
 NAN_METHOD(ReadData) {
 	Callback *progress = new Callback(info[2].As<v8::Function>());
-	Callback *callback = new Callback(info[3].As<v8::Function>());	
+	Callback *callback = new Callback(info[3].As<v8::Function>());
 	char *address = new char[50];
 	int device_number = -1;
 
-	if(!info[0]->IsNumber()) { 
-		v8::String::Utf8Value path(info[0]->ToString());		
+	if(!info[0]->IsNumber()) {
+		v8::String::Utf8Value path(info[0]->ToString());
 		strcpy(address, *path);
 	} else {
 		device_number = To<uint32_t>(info[0]).FromJust();
@@ -134,7 +131,7 @@ NAN_METHOD(ReadData) {
 		To<uint32_t>(info[1]).FromJust()));
 }
 
-NAN_MODULE_INIT(Init) {	
+NAN_MODULE_INIT(Init) {
 	Set(target,
 		New<v8::String>("readData").ToLocalChecked(),
 		New<v8::FunctionTemplate>(ReadData)->GetFunction());
